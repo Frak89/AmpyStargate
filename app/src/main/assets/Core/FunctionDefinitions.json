@@ -1,0 +1,55 @@
+{
+  "version": "1.0.0",
+  "functions": [
+    {
+      "name": "AmpyLauncher.Home",
+      "version": "0.1.0",
+      "purpose": "Default HOME role, requires explicit Android confirmation"
+    },
+    {
+      "name": "AmpyLauncher.Drawer",
+      "version": "0.1.0",
+      "purpose": "List launchable activities for current user"
+    },
+    {
+      "name": "AmpyTheme.Import",
+      "version": "1.0.0",
+      "purpose": "Bounded local palette and cubic SVG import"
+    },
+    {
+      "name": "AmpyOverlay.Arm",
+      "version": "1.0.0",
+      "purpose": "Explicitly activate non-touchable accessibility overlay"
+    },
+    {
+      "name": "AmpyOverlay.Stop",
+      "version": "1.0.0",
+      "purpose": "Remove overlay and unregister its guard heartbeat"
+    },
+    {
+      "name": "AmpyOverlay.React",
+      "version": "1.0.0",
+      "purpose": "Decorate accessible bounds without reading text"
+    },
+    {
+      "name": "AmpyOverlay.IME",
+      "version": "1.0.0",
+      "purpose": "Track exposed keyboard window bounds, approximate interpolation"
+    },
+    {
+      "name": "AmpyGuard.Watch",
+      "version": "1.0.0",
+      "purpose": "Watch registered UI thread heartbeat in a separate process"
+    },
+    {
+      "name": "AmpyGuard.Recover",
+      "version": "1.0.0",
+      "purpose": "Check same-app process identity, disable effects, terminate only stalled Ampy process"
+    },
+    {
+      "name": "AmpyKeyboard.Input",
+      "version": "0.1.0",
+      "purpose": "Optional basic IME, commit own keys directly without input history"
+    }
+  ]
+}

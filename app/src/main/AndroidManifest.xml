@@ -1,0 +1,24 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+ <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+ <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+ <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
+ <queries><intent><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent></queries>
+ <application android:label="AmpyStargate" android:theme="@android:style/Theme.Material.NoActionBar" android:allowBackup="false" android:hardwareAccelerated="true" android:supportsRtl="true" android:icon="@drawable/ampy_stargate">
+  <activity android:name=".AmpyLauncherActivity" android:exported="true" android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize">
+   <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+   <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.HOME"/><category android:name="android.intent.category.DEFAULT"/></intent-filter>
+  </activity>
+  <activity android:name=".AmpyRecoveryActivity" android:exported="false" android:process=":ampy_guard"/>
+  <service android:name=".AmpyGuardService" android:exported="false" android:process=":ampy_guard" android:foregroundServiceType="specialUse">
+   <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User-started watchdog to disable a stalled decorative accessibility overlay and offer launcher recovery"/>
+  </service>
+  <service android:name=".AmpyOverlayService" android:exported="true" android:process=":ampy_overlay" android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+   <intent-filter><action android:name="android.accessibilityservice.AccessibilityService"/></intent-filter>
+   <meta-data android:name="android.accessibilityservice" android:resource="@xml/ampy_accessibility"/>
+  </service>
+  <service android:name=".AmpyKeyboardService" android:exported="true" android:permission="android.permission.BIND_INPUT_METHOD" android:process=":ampy_keyboard" android:label="AmpyKeyboard · sperimentale">
+   <intent-filter><action android:name="android.view.InputMethod"/></intent-filter>
+   <meta-data android:name="android.view.im" android:resource="@xml/ampy_keyboard"/>
+  </service>
+ </application>
+</manifest>

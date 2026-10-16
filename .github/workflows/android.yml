@@ -1,0 +1,39 @@
+name: AmpyStargate Android
+on:
+ push:
+  branches: [main]
+ pull_request:
+ workflow_dispatch:
+permissions:
+ contents: read
+concurrency:
+ group: ampy-stargate-${{ github.ref }}
+ cancel-in-progress: true
+jobs:
+ build:
+  runs-on: ubuntu-latest
+  timeout-minutes: 20
+  steps:
+   - uses: actions/checkout@v4
+   - uses: actions/setup-java@v4
+     with:
+      distribution: temurin
+      java-version: '17'
+   - uses: android-actions/setup-android@v3
+     with:
+      packages: platform-tools
+   - uses: gradle/actions/setup-gradle@v4
+     with:
+      gradle-version: '8.13'
+   - run: sdkmanager 'platforms;android-37.0' 'build-tools;37.0.0'
+   - name: Test geometry and guard state
+     run: |
+      mkdir -p /tmp/ampy-tests
+      javac -d /tmp/ampy-tests app/src/main/java/io/ampy/stargate/AmpyMath.java tools/AmpyMathTest.java
+      java -cp /tmp/ampy-tests AmpyMathTest
+   - run: gradle --no-daemon :app:assembleDebug :app:lintDebug
+   - uses: actions/upload-artifact@v4
+     with:
+      name: AmpyStargate-0.1.0-alpha-debug
+      path: app/build/outputs/apk/debug/app-debug.apk
+      if-no-files-found: error
