@@ -3,7 +3,7 @@
  <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
  <queries><intent><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent></queries>
- <application android:label="AmpyStargate" android:theme="@android:style/Theme.Material.NoActionBar" android:allowBackup="false" android:hardwareAccelerated="true" android:supportsRtl="true" android:icon="@drawable/ampy_stargate">
+ <application android:enableOnBackInvokedCallback="true" android:label="AmpyStargate" android:theme="@android:style/Theme.Material.NoActionBar" android:allowBackup="false" android:hardwareAccelerated="true" android:supportsRtl="true" android:icon="@drawable/ampy_stargate">
   <activity android:name=".AmpyLauncherActivity" android:exported="true" android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize">
    <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
    <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.HOME"/><category android:name="android.intent.category.DEFAULT"/></intent-filter>

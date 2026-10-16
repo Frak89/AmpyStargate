@@ -37,3 +37,40 @@ jobs:
       name: AmpyStargate-0.1.0-alpha-debug
       path: app/build/outputs/apk/debug/app-debug.apk
       if-no-files-found: error
+ runtime:
+  needs: build
+  runs-on: ubuntu-latest
+  timeout-minutes: 20
+  steps:
+   - uses: actions/checkout@v4
+   - uses: actions/setup-java@v4
+     with:
+      distribution: temurin
+      java-version: '17'
+   - uses: android-actions/setup-android@v3
+     with:
+      packages: platform-tools
+   - uses: actions/download-artifact@v4
+     with:
+      name: AmpyStargate-0.1.0-alpha-debug
+      path: apk
+   - name: Disposable Android 16 emulator
+     run: |
+      sudo python3 -c 'import shutil,sys; shutil.rmtree(sys.argv[1], ignore_errors=True)' "$ANDROID_HOME/ndk"
+      sdkmanager 'emulator' 'system-images;android-36;google_apis;x86_64'
+      if [ -e /dev/kvm ]; then sudo chmod 666 /dev/kvm; fi
+      export ANDROID_AVD_HOME=/tmp/ampy-stargate-avd
+      mkdir -p "$ANDROID_AVD_HOME"
+      echo no | avdmanager create avd --force --name ampy-stargate --package 'system-images;android-36;google_apis;x86_64'
+      python3 - <<'PY'
+      import os
+      from pathlib import Path
+      p=Path(os.environ['ANDROID_AVD_HOME'])/'ampy-stargate.avd/config.ini'
+      with p.open('a') as f:f.write('\ndisk.dataPartition.size=2G\nhw.ramSize=4096\n')
+      PY
+      python3 tools/android_smoke.py
+   - uses: actions/upload-artifact@v4
+     if: always()
+     with:
+      name: AmpyStargate-runtime-evidence
+      path: AmpyRuntimeEvidence/

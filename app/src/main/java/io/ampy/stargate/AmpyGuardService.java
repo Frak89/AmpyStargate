@@ -15,7 +15,7 @@ public final class AmpyGuardService extends Service {
  public static final String STOP="io.ampy.stargate.STOP",CHANGED="io.ampy.stargate.CHANGED",ARM="io.ampy.stargate.ARM";
  private static final String CHANNEL="AmpyGuard";private final HashMap<Integer,Watch> watches=new HashMap<>();
  private final Handler handler=new Handler(Looper.getMainLooper());private Messenger messenger;
- private static final class Watch {int pid,role;long last;Watch(int p,int r){pid=p;role=r;last=SystemClock.elapsedRealtime();}}
+ private static final class Watch {int pid,role;long last;Watch(int p,int r){pid=p;role=r;last=SystemClock.uptimeMillis();}}
  @Override public void onCreate(){super.onCreate();messenger=new Messenger(new Handler(Looper.getMainLooper(),this::message));
   getSystemService(NotificationManager.class).createNotificationChannel(new NotificationChannel(CHANNEL,"AmpyGuard · Stop e recupero",NotificationManager.IMPORTANCE_LOW));handler.post(tick);
  }
@@ -29,7 +29,7 @@ public final class AmpyGuardService extends Service {
   if(m.what==LEAVE){watches.remove(pid);return true;}
   if(m.what==RESUME){writeRecovery("");return true;}
   if(m.what==REGISTER&&own(pid,role)){watches.put(pid,new Watch(pid,role));}
-  else if(m.what==BEAT){Watch w=watches.get(pid);if(w!=null)w.last=SystemClock.elapsedRealtime();}
+  else if(m.what==BEAT){Watch w=watches.get(pid);if(w!=null)w.last=SystemClock.uptimeMillis();}
   return true;
  }
  private boolean own(int pid,int role){
@@ -39,7 +39,7 @@ public final class AmpyGuardService extends Service {
   for(ActivityManager.RunningAppProcessInfo p:list)if(p.pid==pid&&p.uid==android.os.Process.myUid()&&expected.equals(p.processName))return true;return false;
  }
  private final Runnable tick=new Runnable(){public void run(){
-  long now=SystemClock.elapsedRealtime();for(Watch w:new ArrayList<>(watches.values()))if(AmpyMath.stale(now,w.last,6000)){
+  long now=SystemClock.uptimeMillis();for(Watch w:new ArrayList<>(watches.values()))if(AmpyMath.stale(now,w.last,6000)){
    if(!own(w.pid,w.role)){watches.remove(w.pid);continue;}
    recover("Thread UI Ampy non responsivo per almeno 6 secondi",w.pid);break;
   }handler.postDelayed(this,500);
