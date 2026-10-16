@@ -3,7 +3,7 @@
  android:accessibilityEventTypes="typeViewClicked|typeViewFocused|typeWindowStateChanged|typeWindowsChanged"
  android:accessibilityFeedbackType="feedbackVisual"
  android:accessibilityFlags="flagRetrieveInteractiveWindows"
- android:notificationTimeout="80"
+ android:notificationTimeout="0"
  android:canRetrieveWindowContent="true"
  android:isAccessibilityTool="false"
  android:settingsActivity="io.ampy.stargate.AmpyLauncherActivity"/>

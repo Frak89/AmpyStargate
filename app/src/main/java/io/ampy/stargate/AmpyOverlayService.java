@@ -19,7 +19,7 @@ public final class AmpyOverlayService extends AccessibilityService {
  }};
  @Override protected void onServiceConnected(){super.onServiceConnected();windows=getSystemService(WindowManager.class);
   IntentFilter filter=new IntentFilter();filter.addAction(AmpyGuardService.STOP);filter.addAction(AmpyGuardService.ARM);filter.addAction(AmpyGuardService.CHANGED);
-  if(Build.VERSION.SDK_INT>=33)registerReceiver(commands,filter,Context.RECEIVER_NOT_EXPORTED);else registerReceiver(commands,filter);registered=true;writeReport(true);
+  if(Build.VERSION.SDK_INT>=33)registerReceiver(commands,filter,Context.RECEIVER_NOT_EXPORTED);else registerReceiver(commands,filter,"io.ampy.stargate.permission.AMPY_COMMAND",null);registered=true;writeReport(true);
   // Accessibility activation never implicitly arms a global overlay.
  }
  private void arm(){if(armed)return;guard=new AmpyGuardClient(this,2);guard.connect(()->{
