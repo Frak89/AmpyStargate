@@ -6,6 +6,8 @@ Launcher Android con grafica organica, overlay reattivo decorativo e tastiera Am
 
 Apri AmpyStargate come una normale app. **Launcher predefinito** apre la scelta Android: non cambia il launcher senza conferma. Il drawer mostra le app avviabili dell'utente corrente; non implementa ancora spazio privato, profili lavoro o widget Android.
 
+La pagina **AmpyPermissions / Permessi e configurazione** offre collegamenti a Informazioni app e Accessibilità e distingue permesso abilitato, servizio che risponde e overlay attivo. Se Android mostra **Controlled by Restricted Setting**, apri Informazioni app → ⋮ → **Allow restricted settings / Consenti impostazioni con limitazioni**, conferma e torna in Accessibilità. Questa conferma resta manuale.
+
 L'overlay è inizialmente spento. Leggi la descrizione, abilita il servizio nelle impostazioni Accessibilità e torna in AmpyStargate per premere **Avvia overlay**. Il servizio decorativo è dichiarato non assistivo. Non richiede esplorazione al tocco, cattura schermo o controllo dei gesti. Effetti e tema si possono cambiare; un comando Stop rimane nella notifica del guardiano.
 
 ## Cosa fa davvero
@@ -16,7 +18,7 @@ L'overlay è inizialmente spento. Leggi la descrizione, abilita il servizio nell
 - Disegna un overlay di accessibilità non toccabile e non focalizzabile: il tocco originale va alla finestra nativa. Nessuna iniezione o replica dei tocchi.
 - Segue i rettangoli IME esposti dal sistema con una transizione interpolata. Non garantisce la stessa curva temporale di Gboard, né tutti i singoli tasti di una tastiera esterna.
 - La tastiera **AmpyKeyboard**, se selezionata esplicitamente, può animare esattamente i propri tasti e si muove con la finestra IME Android. È una tastiera base sperimentale, non Gboard rivestita.
-- Dalla 0.1.2 rilegge il tema a ogni apertura senza richiedere il riavvio della tastiera. Dopo un recupero usa solo controlli nativi per cambiare IME o aprirne le impostazioni, senza caricare gli SVG personalizzati.
+- Dalla 0.1.1 rilegge il tema a ogni apertura senza richiedere il riavvio della tastiera. Dopo un recupero usa solo controlli nativi per cambiare IME o aprirne le impostazioni, senza caricare gli SVG personalizzati.
 - Le schermate bloccate, i dati sensibili, le finestre di sistema e i componenti senza nodi accessibili vengono esclusi o non decorati. Non si aggirano restrizioni Android.
 
 ## Recupero
@@ -38,3 +40,5 @@ Apri la cartella come progetto Gradle in Android Studio con JDK 17 e SDK Android
 L'accessibilità reale, l'ordine sopra le tastiere OEM, la latenza degli eventi, i 120 Hz e il recupero sotto carico devono essere verificati sul Pixel. Il target 120 Hz è un suggerimento al sistema, non una misura degli fps.
 
 La variante debug include un editor nativo `AmpyInputProbeActivity` senza voce nel drawer, usato esclusivamente con testo sintetico nell'emulatore CI. Non salva input, non viene incluso nelle build release e non sostituisce una verifica della tastiera sul telefono.
+
+Dalla 0.1.2 i menu di temi/effetti mostrano la scelta corrente con contorno SVG neon dorato; `selection` è un colore facoltativo della palette. AmpyDebug esporta anche gli stati dei permessi e gli errori di avvio.

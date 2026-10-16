@@ -1,3 +1,39 @@
+# Verifica 0.1.2-alpha — 16 ottobre 2026
+
+Sorgenti verificati: `07e85b2a6b33326dd9e5b35bab26e0a87156f130`.
+
+Workflow: https://github.com/Frak89/AmpyStargate/actions/runs/38958589978
+
+APK: `AmpyStargate-0.1.2-alpha-debug.apk`, versionCode 3, 6.232.852 byte.
+
+SHA256: `636f5e7f74bd2bbac036ac3af877560314408876f16eef57b33ca2e4cd9fa633`.
+
+## Correzione dello screenshot Restricted Setting
+
+La pagina AmpyPermissions guida al consenso manuale: Informazioni app → ⋮ → Allow restricted settings / Consenti impostazioni con limitazioni, quindi Accessibilità → AmpyStargate, infine Avvia overlay. Non tenta di scrivere impostazioni protette o di concedersi il permesso. Non rileva in modo certo ogni criterio di restrizione: lo stato disabilitato viene presentato con una guida condizionale, non con una diagnosi inventata.
+
+Riferimento ufficiale: https://support.google.com/android/answer/12623953
+
+## Verifiche passate
+
+- Test matematici, compilazione API 37 e Android Lint.
+- Emulatore API 36: apertura della scheda Informazioni app del proprio package e delle impostazioni Accessibilità usando le attività risolte da Android.
+- UI del selettore temi: scelta Fusion con segno di selezione; screenshot verificato con contorno SVG e testo dorati. I controlli ON e il tab corrente usano la stessa evidenza. Il colore selection è opzionale nella palette JSON.
+- Stato iniziale disabilitato/inattivo, poi conferma esplicita del servizio nel launcher dopo Avvia overlay. Permesso, connessione e overlay sono stati separati; non viene dichiarato successo al solo invio del comando.
+- Tocchi nativi attraverso overlay e reazioni ai click accessibili.
+- Digitazione reale, maiuscole, spazio, tastierino, cancellazione, Invio multilinea, azione Fine, inserimento numerico, cambio tema senza cambiare PID e uscita alle impostazioni dalla tastiera in modalità sicura.
+- Due blocchi consecutivi recuperati: prima overlay, poi launcher. Guardiano separato e controllo PID conservati.
+
+AmpyDebug aggiunge AmpyAccess.json ai report di overlay e guardiano. Mostra stati e l'eventuale errore di avvio senza contenuto dello schermo o cronologia input. Il protocollo privato interprocesso distingue avvio richiesto da avvio confermato e impedisce richieste duplicate durante l'avvio.
+
+## Limiti della prova
+
+L'emulatore installa via ADB: la conferma nativa Allow restricted settings mostrata sul Pixel non è stata automatizzata né verificata sul telefono. È un'azione dell'utente in Android, non una funzione concessa dall'APK. Restano da verificare sul Pixel Android 17 la procedura manuale completa, i 120 Hz effettivi, Gboard, stabilità prolungata e selezione Home. Nessuna promessa di recupero da freeze globali Android/GPU/guardiano.
+
+Gli APK debug delle build CI possono avere certificati diversi: conservare i propri temi e leggere le istruzioni prima di disinstallare. La firma di distribuzione stabile rimane da configurare.
+
+---
+
 # Verifica 0.1.1-alpha — 16 ottobre 2026
 
 Sorgenti verificati: `13ed31c90301509d32958cb1d335ce370bad0ad3`.
