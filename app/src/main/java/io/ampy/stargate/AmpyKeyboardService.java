@@ -31,7 +31,7 @@ public final class AmpyKeyboardService extends InputMethodService {
   if(!AmpyGuardService.recoveryReason(this).isEmpty()){
    keyboard.setBackgroundColor(android.graphics.Color.BLACK);keyboard.setContentDescription("AmpyKeyboard recupero");
    TextView label=new TextView(this);label.setText("AmpyKeyboard sospesa dopo recupero");label.setTextColor(android.graphics.Color.WHITE);keyboard.addView(label);
-   for(String title:new String[]{"Cambia tastiera","Impostazioni"}){Button key=new Button(this);key.setText(title);keyboard.addView(key);key.setOnClickListener(v->press(title));}return;
+   for(String title:new String[]{"Cambia tastiera","Impostazioni"}){Button key=new Button(this);key.setAllCaps(false);key.setText(title);keyboard.addView(key);key.setOnClickListener(v->press(title));}return;
   }
   if(theme==null)theme=new AmpyTheme(this);
   keyboard.setBackgroundColor(theme.background);keyboard.setContentDescription("AmpyKeyboard · "+theme.name());
