@@ -55,7 +55,8 @@ public final class AmpyKeyboardService extends InputMethodService {
   if(label.equals("⇧")){upper=!upper;build();return;}if(label.equals("123 / ABC")){symbols=!symbols;build();return;}if(input==null)return;
   if(label.equals("⌫")){input.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_DEL));input.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP,KeyEvent.KEYCODE_DEL));}
   else if(label.equals("Invio")){EditorInfo info=getCurrentInputEditorInfo();int action=info==null?EditorInfo.IME_ACTION_NONE:info.imeOptions&EditorInfo.IME_MASK_ACTION;
-   if(action!=EditorInfo.IME_ACTION_NONE&&action!=EditorInfo.IME_ACTION_UNSPECIFIED)input.performEditorAction(action);else input.commitText("\n",1);
+   boolean newline=info==null||(info.imeOptions&EditorInfo.IME_FLAG_NO_ENTER_ACTION)!=0||action==EditorInfo.IME_ACTION_NONE||action==EditorInfo.IME_ACTION_UNSPECIFIED;
+   if(newline)input.commitText("\n",1);else input.performEditorAction(action);
   }else input.commitText(label.equals("Spazio")?" ":label,1);
  }
  @Override public void onDestroy(){if(guard!=null)guard.close();super.onDestroy();}

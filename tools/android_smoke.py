@@ -49,8 +49,8 @@ try:
  # Complete actual key entry BEFORE enabling accessibility: shell UI dumps suppress it.
  call('shell','ime','enable',package+'/.AmpyKeyboardService');call('shell','ime','set',package+'/.AmpyKeyboardService')
  call('shell','settings','put','secure','show_ime_with_hard_keyboard','1')
- def probe(numeric=False):
-  call('shell','am','start','-W','-f','0x10008000','-n',package+'/.AmpyInputProbeActivity','--ez','numeric',str(numeric).lower());time.sleep(2)
+ def probe(numeric=False,done=False):
+  call('shell','am','start','-W','-f','0x10008000','-n',package+'/.AmpyInputProbeActivity','--ez','numeric',str(numeric).lower(),'--ez','done',str(done).lower());time.sleep(2)
   def visible():
    tree=hierarchy()
    return tree if any(n.get('content-desc','').startswith('AmpyKeyboard') for n in tree.iter('node')) else None
@@ -67,10 +67,13 @@ try:
  def has_theme(geometry,name):return any(node.get('content-desc')=='AmpyKeyboard · '+name for node in geometry.iter('node'))
  keyboard_geometry=probe()
  assert has_theme(keyboard_geometry,'AmpyStargate_Fusion')
- key('q');key('⇧');key('W');key('Spazio');key('123 / ABC');key('7');key('⌫');key('Invio')
- assert typed()=='qW \n','Text/shift/space/symbol/delete/newline input failed'
+ key('q');key('⇧');key('W');key('Spazio');key('123 / ABC');key('7');key('⌫')
+ assert typed()=='qW ','Text/shift/space/symbol/delete input failed'
+ key('Invio');assert typed()=='qW \n','Multiline enter ignored IME_FLAG_NO_ENTER_ACTION'
  screenshot('keyboard-text.png')
  probe(True);key('4');key('2');assert typed()=='42','Numeric editor failed'
+ probe(done=True);key('q');key('Invio');assert typed()=='q','Done action inserted unwanted newline'
+ assert any(n.get('text')=='AmpyInputProbe action done' for n in hierarchy().iter('node')),'Done action not delivered to editor'
  ime_pid=call('shell','pidof',package+':ampy_keyboard').strip()
  # Hide the IME, change the shared theme from a separate process, then reopen it.
  call('shell','input','keyevent','BACK');write_private('AmpyThemeConfig.json',{'theme':'AmpyStargate_Classic'})
