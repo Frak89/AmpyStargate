@@ -48,7 +48,7 @@ public final class AmpyGuardService extends Service {
   writeRecovery(reason);sendBroadcast(new Intent(STOP).setPackage(getPackageName()));
   // Take a stable snapshot before unregistration messages arrive.
   ArrayList<Watch> snapshot=new ArrayList<>(watches.values());watches.clear();
-  for(Watch w:snapshot)if((w.role==2||w.pid==stalledPid)&&own(w.pid,w.role))android.os.Process.killProcess(w.pid);
+  for(Watch w:snapshot)if(own(w.pid,w.role)){if(w.role==2||w.pid==stalledPid)android.os.Process.killProcess(w.pid);else watches.put(w.pid,new Watch(w.pid,w.role));}
   if(Build.VERSION.SDK_INT<33||checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)==android.content.pm.PackageManager.PERMISSION_GRANTED)getSystemService(NotificationManager.class).notify(411,notification(reason,true));
  }
  private Notification notification(String message,boolean recovery){

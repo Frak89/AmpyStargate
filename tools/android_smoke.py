@@ -69,7 +69,12 @@ try:
  tap('Test tocco nativo')
  assert int(call('shell','run-as',package,'cat','files/AmpyNativeClicks.txt'))>=4
  screenshot('recovered.png')
- report={'android_api':call('shell','getprop','ro.build.version.sdk').strip(),'native_touches_pass_through':True,'accessible_click_reactions':True,'optional_ime_registered':True,'stalled_own_overlay_terminated':True,'safe_mode_recorded':True,'launcher_remains_usable':True,'physical_pixel_and_external_keyboard_timing':'not tested'}
+ # Recovery of the overlay must not disarm monitoring of the healthy launcher.
+ main_pid=int(call('shell','pidof',package).strip());first_recovery=state('AmpyGuard.json')['timestamp']
+ call('shell','kill','-STOP',str(main_pid))
+ wait_for(lambda:state('AmpyGuard.json')['timestamp']>first_recovery,15)
+ wait_for(lambda:str(main_pid) not in [line.split()[0] for line in call('shell','ps','-A','-o','PID,NAME').splitlines()[1:] if line.strip()],30)
+ report={'android_api':call('shell','getprop','ro.build.version.sdk').strip(),'native_touches_pass_through':True,'accessible_click_reactions':True,'optional_ime_registered':True,'stalled_own_overlay_terminated':True,'safe_mode_recorded':True,'launcher_remains_usable':True,'second_launcher_stall_recovered':True,'physical_pixel_and_external_keyboard_timing':'not tested'}
  (out/'result.json').write_text(json.dumps(report,indent=2));print(json.dumps(report))
 finally:
  try:
