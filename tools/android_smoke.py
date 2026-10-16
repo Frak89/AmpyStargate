@@ -22,7 +22,7 @@ def wait_for(fn,seconds=30):
   time.sleep(.5)
  raise AssertionError('Condition timed out: '+repr(last))
 def hierarchy():
- call('shell','rm','-f','/sdcard/ampy-ui.xml');call('shell','uiautomator','dump','/sdcard/ampy-ui.xml')
+ call('shell','rm','-f','/sdcard/ampy-ui.xml');call('shell','uiautomator','dump','--windows','/sdcard/ampy-ui.xml')
  xml=call('shell','cat','/sdcard/ampy-ui.xml');(out/'hierarchy.xml').write_text(xml);return ET.fromstring(xml)
 def tap(label,geometry=None,exact=False):
  # Shell uiautomator suppresses accessibility services. Read geometry once before

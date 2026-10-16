@@ -9,8 +9,12 @@ import android.provider.Settings;
 
 /** AmpyKeyboard 0.1.1. Optional basic IME, precise local key feedback, no text history. */
 public final class AmpyKeyboardService extends InputMethodService {
- private AmpyTheme theme;private LinearLayout keyboard;private boolean upper,symbols,numeric;private AmpyGuardClient guard;
- @Override public View onCreateInputView(){keyboard=new LinearLayout(this);keyboard.setOrientation(LinearLayout.VERTICAL);refreshTheme();return keyboard;}
+ private AmpyTheme theme;private LinearLayout keyboard;private boolean upper,symbols,numeric;private AmpyGuardClient guard;private int navigationBottom;
+ private int dp(int value){return Math.round(value*getResources().getDisplayMetrics().density);}
+ private void padding(){keyboard.setPadding(dp(3),dp(8),dp(3),dp(8)+navigationBottom);}
+ @Override public View onCreateInputView(){keyboard=new LinearLayout(this);keyboard.setOrientation(LinearLayout.VERTICAL);
+  keyboard.setOnApplyWindowInsetsListener((v,insets)->{navigationBottom=insets.getInsets(WindowInsets.Type.navigationBars()).bottom;padding();return insets;});
+  refreshTheme();return keyboard;}
  @Override public void onStartInputView(EditorInfo info,boolean restarting){super.onStartInputView(info,restarting);
   int inputClass=info==null?InputType.TYPE_CLASS_TEXT:info.inputType&InputType.TYPE_MASK_CLASS;
   numeric=inputClass==InputType.TYPE_CLASS_NUMBER||inputClass==InputType.TYPE_CLASS_PHONE;
@@ -23,7 +27,7 @@ public final class AmpyKeyboardService extends InputMethodService {
   if(AmpyGuardService.recoveryReason(this).isEmpty()){if(theme==null)theme=new AmpyTheme(this);else theme.load();}
   build();
  }
- private void build(){keyboard.removeAllViews();keyboard.setPadding(3,8,3,8);
+ private void build(){keyboard.removeAllViews();padding();
   if(!AmpyGuardService.recoveryReason(this).isEmpty()){
    keyboard.setBackgroundColor(android.graphics.Color.BLACK);keyboard.setContentDescription("AmpyKeyboard recupero");
    TextView label=new TextView(this);label.setText("AmpyKeyboard sospesa dopo recupero");label.setTextColor(android.graphics.Color.WHITE);keyboard.addView(label);
