@@ -10,6 +10,7 @@ L'overlay è inizialmente spento. Leggi la descrizione, abilita il servizio nell
 
 ## Cosa fa davvero
 
+- A riposo, ricava al massimo 80 rettangoli di controlli cliccabili non sensibili da una scansione limitata a 240 nodi. Durante scroll/cambi finestra elimina la mappa vecchia e attende brevemente la stabilizzazione. Non ricostruisce pulsanti non esposti e non modifica i loro contenuti. La skin a riposo è disattivabile.
 - Decora il rettangolo di click/focus quando l'app lo espone all'accessibilità. Non legge il testo della vista, dei campi o dei tasti.
 - Non cattura schermi a riposo: si basa sui metadati delle finestre. Non ricostruisce arbitrariamente i pixel dell'app.
 - Disegna un overlay di accessibilità non toccabile e non focalizzabile: il tocco originale va alla finestra nativa. Nessuna iniezione o replica dei tocchi.

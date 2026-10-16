@@ -27,7 +27,7 @@ public final class AmpyOverlayService extends AccessibilityService {
    WindowManager.LayoutParams p=new WindowManager.LayoutParams(-1,-1,WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
     WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE|WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE|WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,PixelFormat.TRANSLUCENT);
    p.gravity=Gravity.TOP|Gravity.LEFT;p.layoutInDisplayCutoutMode=WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
-   windows.addView(overlay,p);armed=true;writeReport(true);ui.post(pollKeyboard);
+   windows.addView(overlay,p);armed=true;writeReport(true);ui.post(pollKeyboard);ui.postDelayed(snapshot,180);
   }catch(RuntimeException e){android.util.Log.e("AmpyOverlay","Overlay unavailable",e);stopOverlay();}
  });}
  private boolean blocked(){
@@ -44,18 +44,20 @@ public final class AmpyOverlayService extends AccessibilityService {
  }};
  @Override public void onAccessibilityEvent(AccessibilityEvent event){
   if(!armed||overlay==null)return;
-  if(event.getEventType()==AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED){CharSequence pkg=event.getPackageName();if(pkg!=null)currentPackage=pkg.toString();}
+  if(event.getEventType()==AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED){CharSequence pkg=event.getPackageName();boolean ime=false;List<AccessibilityWindowInfo> list=getWindows();if(list!=null)for(AccessibilityWindowInfo w:list)if(w.getId()==event.getWindowId()&&(w.getType()==AccessibilityWindowInfo.TYPE_INPUT_METHOD||w.getType()==AccessibilityWindowInfo.TYPE_ACCESSIBILITY_OVERLAY))ime=true;if(pkg!=null&&!ime)currentPackage=pkg.toString();}
   if(blocked()){overlay.setVisibility(View.GONE);overlay.clearEffects();return;}
   if(event.isPassword()||(Build.VERSION.SDK_INT>=34&&event.isAccessibilityDataSensitive()))return;
-  int kind=event.getEventType();if(kind!=AccessibilityEvent.TYPE_VIEW_CLICKED&&kind!=AccessibilityEvent.TYPE_VIEW_FOCUSED)return;
+  int kind=event.getEventType();if(kind==AccessibilityEvent.TYPE_VIEW_SCROLLED||kind==AccessibilityEvent.TYPE_WINDOWS_CHANGED||kind==AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED){overlay.skin(java.util.Collections.emptyList());ui.removeCallbacks(snapshot);ui.postDelayed(snapshot,180);}
+  if(kind!=AccessibilityEvent.TYPE_VIEW_CLICKED&&kind!=AccessibilityEvent.TYPE_VIEW_FOCUSED)return;
   AccessibilityNodeInfo node=event.getSource();if(node==null)return;
   try{if(node.isPassword()||(Build.VERSION.SDK_INT>=34&&node.isAccessibilityDataSensitive()))return;Rect bounds=new Rect();node.getBoundsInScreen(bounds);overlay.flash(bounds);reactions++;writeReport(true);}
   finally{node.recycle();}
  }
- private void stopOverlay(){armed=false;ui.removeCallbacks(pollKeyboard);
+ private void stopOverlay(){armed=false;ui.removeCallbacks(pollKeyboard);ui.removeCallbacks(snapshot);
   if(overlay!=null){overlay.close();try{windows.removeViewImmediate(overlay);}catch(RuntimeException ignored){}overlay=null;}
   if(guard!=null){guard.close();guard=null;}writeReport(true);
  }
+ private final Runnable snapshot=()->{if(armed&&overlay!=null&&!blocked()){int[] p=new int[2];overlay.getLocationOnScreen(p);Rect area=new Rect(p[0],p[1],p[0]+overlay.getWidth(),p[1]+overlay.getHeight());overlay.skin(AmpySkinSnapshot.collect(getRootInActiveWindow(),area));}};
  private void writeReport(boolean force){long now=SystemClock.uptimeMillis();if(!force&&now-lastReport<1000)return;lastReport=now;
   android.util.AtomicFile f=new android.util.AtomicFile(new java.io.File(getFilesDir(),"AmpyOverlay.json"));java.io.FileOutputStream out=null;
   try{org.json.JSONObject o=new org.json.JSONObject();o.put("version","1.0.0");o.put("active",armed);o.put("reactions",reactions);o.put("pid",android.os.Process.myPid());o.put("uptime_ms",now);out=f.startWrite();out.write(o.toString(2).getBytes(java.nio.charset.StandardCharsets.UTF_8));f.finishWrite(out);}catch(Exception e){if(out!=null)f.failWrite(out);android.util.Log.w("AmpyOverlay","Diagnostic write failed",e);}

@@ -70,6 +70,7 @@ public final class AmpyLauncherActivity extends Activity {
   button(body,"Esporta report AmpyDebug",()->startActivityForResult(new Intent(Intent.ACTION_CREATE_DOCUMENT).setType("text/plain").putExtra(Intent.EXTRA_TITLE,"AmpyStargate-Debug.txt"),13));
   button(body,"Scegli tema SVG",()->new AlertDialog.Builder(this).setTitle("AmpyThemes").setItems(AmpyTheme.NAMES,(d,n)->{theme.select(n);changed();render();}).show());
   button(body,"Effetto pulsanti overlay",()->new AlertDialog.Builder(this).setTitle("AmpyEffects").setItems(new String[]{"Morph organico","Glitch","TV scan lines"},(d,n)->{theme.saveEffects(new String[]{"morph","glitch","scan"}[n],theme.ambient,theme.fps);changed();render();}).show());
+  button(body,theme.idleSkin?"Skin dei controlli a riposo: ON":"Skin dei controlli a riposo: OFF",()->{theme.setIdleSkin(!theme.idleSkin);changed();render();});
   button(body,theme.ambient?"Scan ambient: ON":"Scan ambient: OFF",()->{theme.saveEffects(theme.effect,!theme.ambient,theme.fps);changed();render();});
   button(body,"Richiesta display: "+theme.fps+" Hz",()->{theme.saveEffects(theme.effect,theme.ambient,theme.fps==120?60:120);changed();render();});
   button(body,"Importa forma SVG M/C/Z",()->pick("AmpyOrganic.svg","image/svg+xml"));button(body,"Importa palette JSON",()->pick("palette.json","application/json"));
