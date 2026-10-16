@@ -19,12 +19,12 @@ public final class AmpyLauncherActivity extends Activity {
  private final Runnable clockTick=new Runnable(){public void run(){if(clock!=null)clock.setText(java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")));ui.postDelayed(this,60000-System.currentTimeMillis()%60000);}};
  private AmpyTheme theme;private LinearLayout body;private int page,testClicks;private AmpyGuardClient guard;private String pendingImport="AmpyOrganic.svg";
  private final ArrayList<ResolveInfo> apps=new ArrayList<>();
- @Override public void onCreate(Bundle state){super.onCreate(state);theme=new AmpyTheme(this);if(state!=null){page=state.getInt("page",0);pendingImport=state.getString("import","AmpyOrganic.svg");}
+ @Override public void onCreate(Bundle state){super.onCreate(state);if(!AmpyGuardService.recoveryReason(this).isEmpty()){startActivity(new Intent(this,AmpyRecoveryActivity.class));finish();return;}theme=new AmpyTheme(this);if(state!=null){page=state.getInt("page",0);pendingImport=state.getString("import","AmpyOrganic.svg");}
   android.view.WindowManager.LayoutParams p=getWindow().getAttributes();p.rotationAnimation=WindowManager.LayoutParams.ROTATION_ANIMATION_JUMPCUT;getWindow().setAttributes(p);
   refreshApps();render();
   if(Build.VERSION.SDK_INT>=33)getOnBackInvokedDispatcher().registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT,this::back);
  }
- @Override protected void onResume(){super.onResume();theme.load();render();ui.removeCallbacks(clockTick);ui.post(clockTick);
+ @Override protected void onResume(){super.onResume();if(theme==null||isFinishing())return;theme.load();render();ui.removeCallbacks(clockTick);ui.post(clockTick);
   try{startForegroundService(new Intent(this,AmpyGuardService.class));guard=new AmpyGuardClient(this,1);guard.connect(null);}catch(RuntimeException e){notice("AmpyGuard non avviato: "+e.getMessage());}
  }
  @Override protected void onPause(){ui.removeCallbacks(clockTick);if(guard!=null){guard.close();guard=null;}super.onPause();}

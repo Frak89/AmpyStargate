@@ -14,7 +14,7 @@ public final class AmpyRecoveryActivity extends Activity {
   add(box,"Scegli launcher Android",()->startActivity(new Intent(Settings.ACTION_HOME_SETTINGS)));
   add(box,"Disattiva servizio overlay",()->startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)));
   add(box,"Impostazioni tastiera",()->startActivity(new Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)));
-  add(box,"Apri AmpyStargate",()->startActivity(new Intent(this,AmpyLauncherActivity.class)));
+  add(box,"Riprova AmpyStargate · grafica di fabbrica",()->{try{AmpyTheme.factoryMode(this);AmpyGuardService.clearRecovery(this);startActivity(new Intent(this,AmpyLauncherActivity.class));finish();}catch(Exception e){Toast.makeText(this,"Ripristino non riuscito: "+e.getMessage(),Toast.LENGTH_LONG).show();}});
   setContentView(box);
  }
  private void add(LinearLayout box,String label,Runnable action){Button b=new Button(this);b.setText(label);b.setOnClickListener(v->action.run());box.addView(b);}

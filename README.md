@@ -20,7 +20,7 @@ L'overlay è inizialmente spento. Leggi la descrizione, abilita il servizio nell
 
 ## Recupero
 
-AmpyGuard gira in un processo separato e riceve heartbeat dai thread UI monitorati. Se un processo Ampy registrato smette di rispondere per almeno 6 secondi, disabilita l'overlay, registra il motivo, termina solo quel processo Ampy se ancora appartenente all'app e pubblica una notifica di recupero. Il recupero offre le impostazioni Home e Accessibilità. I PID vengono verificati prima di ogni terminazione, per non colpire un PID riutilizzato.
+AmpyGuard gira in un processo separato e riceve heartbeat dai thread UI monitorati. Se un processo Ampy registrato smette di rispondere per almeno 6 secondi, disabilita l'overlay, registra il motivo, termina solo quel processo Ampy se ancora appartenente all'app e pubblica una notifica di recupero. Il recupero offre le impostazioni Home e Accessibilità. Un nuovo avvio dopo il blocco apre direttamente questa schermata semplice; Riprova usa la grafica di fabbrica e conserva gli SVG importati. Le scelte di tema sono condivise con un file atomico per evitare cache incoerenti fra processi. I PID vengono verificati prima di ogni terminazione, per non colpire un PID riutilizzato.
 
 Non può garantire il recupero da un blocco dell'intero Android, di System UI, del driver GPU o dello stesso guardiano; non può forzare la chiusura di altre app, né scegliere Pixel Launcher senza la conferma dell'utente. L'overlay non si riattiva da solo dopo una perdita di connessione o un crash. Non viene installata un'app amministratore dispositivo.
 

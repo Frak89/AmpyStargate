@@ -59,8 +59,10 @@ public final class AmpyGuardService extends Service {
    .setContentText(message).setStyle(new Notification.BigTextStyle().bigText(message)).setContentIntent(show).setOngoing(!recovery)
    .addAction(new Notification.Action.Builder(null,"Stop effetti",stop).build()).addAction(new Notification.Action.Builder(null,"Launcher Android / recupero",show).build()).build();
  }
- private void writeRecovery(String reason){
-  AtomicFile f=new AtomicFile(new File(getFilesDir(),"AmpyGuard.json"));FileOutputStream out=null;
+ private void writeRecovery(String reason){persistRecovery(this,reason);}
+ public static void clearRecovery(Context context){persistRecovery(context,"");}
+ private static void persistRecovery(Context context,String reason){
+  AtomicFile f=new AtomicFile(new File(context.getFilesDir(),"AmpyGuard.json"));FileOutputStream out=null;
   try{JSONObject o=new JSONObject();o.put("version","1.0.0");o.put("safe_mode",!reason.isEmpty());o.put("reason",reason);o.put("timestamp",System.currentTimeMillis());out=f.startWrite();out.write(o.toString(2).getBytes(StandardCharsets.UTF_8));f.finishWrite(out);}
   catch(Exception e){if(out!=null)f.failWrite(out);android.util.Log.e("AmpyGuard",e.toString());}
  }
