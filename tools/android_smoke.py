@@ -48,9 +48,13 @@ try:
  call('shell','am','start','-W','-n',package+'/.AmpyLauncherActivity');time.sleep(2)
  # Complete actual key entry BEFORE enabling accessibility: shell UI dumps suppress it.
  call('shell','ime','enable',package+'/.AmpyKeyboardService');call('shell','ime','set',package+'/.AmpyKeyboardService')
+ call('shell','settings','put','secure','show_ime_with_hard_keyboard','1')
  def probe(numeric=False):
   call('shell','am','start','-W','-f','0x10008000','-n',package+'/.AmpyInputProbeActivity','--ez','numeric',str(numeric).lower());time.sleep(2)
-  return hierarchy()
+  def visible():
+   tree=hierarchy()
+   return tree if any(n.get('content-desc','').startswith('AmpyKeyboard') for n in tree.iter('node')) else None
+  return wait_for(visible,45)
  def typed():
   geometry=hierarchy()
   for node in geometry.iter('node'):
