@@ -28,7 +28,7 @@ public final class AmpyLauncherActivity extends Activity {
   try{startForegroundService(new Intent(this,AmpyGuardService.class));guard=new AmpyGuardClient(this,1);guard.connect(null);}catch(RuntimeException e){notice("AmpyGuard non avviato: "+e.getMessage());}
  }
  @Override protected void onPause(){ui.removeCallbacks(clockTick);if(guard!=null){guard.close();guard=null;}super.onPause();}
- @Override public void onConfigurationChanged(Configuration c){super.onConfigurationChanged(c);render();}
+ @Override public void onConfigurationChanged(Configuration c){super.onConfigurationChanged(c);if(theme!=null)render();}
  @Override protected void onSaveInstanceState(Bundle b){super.onSaveInstanceState(b);b.putInt("page",page);b.putString("import",pendingImport);}
  private void back(){if(page!=0){page=0;render();}else if(!getSystemService(RoleManager.class).isRoleHeld(RoleManager.ROLE_HOME))finish();}
  @Override public boolean onKeyDown(int code,KeyEvent e){if(Build.VERSION.SDK_INT<33&&code==KeyEvent.KEYCODE_BACK)return true;return super.onKeyDown(code,e);}
@@ -65,6 +65,7 @@ public final class AmpyLauncherActivity extends Activity {
    ImageView icon=new ImageView(this);icon.setImageDrawable(info.loadIcon(getPackageManager()));cell.addView(icon,new LinearLayout.LayoutParams(dp(64),dp(64)));TextView label=text(info.loadLabel(getPackageManager()).toString(),12,theme.text);label.setMaxLines(2);label.setGravity(Gravity.CENTER);cell.addView(label);
    cell.setContentDescription(info.loadLabel(getPackageManager()));cell.setOnClickListener(v->{surface.flash();try{Intent launch=new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER).setComponent(new ComponentName(info.activityInfo.packageName,info.activityInfo.name));startActivity(launch,ActivityOptions.makeScaleUpAnimation(cell,0,0,cell.getWidth(),cell.getHeight()).toBundle());}catch(RuntimeException e){notice("App non avviabile: "+e.getMessage());}});
   }
+  if(row!=null)for(int n=apps.size()%count;n>0&&n<count;n++){View empty=new View(this);LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,dp(148),1);p.setMargins(dp(3),dp(3),dp(3),dp(3));row.addView(empty,p);}
  }
  private void settings(){
   button(body,"Esporta report AmpyDebug",()->startActivityForResult(new Intent(Intent.ACTION_CREATE_DOCUMENT).setType("text/plain").putExtra(Intent.EXTRA_TITLE,"AmpyStargate-Debug.txt"),13));
