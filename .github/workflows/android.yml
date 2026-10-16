@@ -2,6 +2,7 @@ name: AmpyStargate Android
 on:
  push:
   branches: [main]
+  paths: ["app/**", "tools/**", ".github/workflows/**", "*.gradle", "gradle.properties"]
  pull_request:
  workflow_dispatch:
 permissions:

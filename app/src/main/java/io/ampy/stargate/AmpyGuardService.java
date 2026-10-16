@@ -55,7 +55,7 @@ public final class AmpyGuardService extends Service {
   Intent open=new Intent(this,AmpyRecoveryActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
   PendingIntent show=PendingIntent.getActivity(this,1,open,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
   PendingIntent stop=PendingIntent.getService(this,2,new Intent(this,AmpyGuardService.class).setAction(STOP),PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
-  return new Notification.Builder(this,CHANNEL).setSmallIcon(R.drawable.ampy_stargate).setContentTitle(recovery?"AmpyStargate · modalità sicura":"AmpyGuard")
+  return new Notification.Builder(this,CHANNEL).setSmallIcon(R.drawable.ampy_notification).setContentTitle(recovery?"AmpyStargate · modalità sicura":"AmpyGuard")
    .setContentText(message).setStyle(new Notification.BigTextStyle().bigText(message)).setContentIntent(show).setOngoing(!recovery)
    .addAction(new Notification.Action.Builder(null,"Stop effetti",stop).build()).addAction(new Notification.Action.Builder(null,"Launcher Android / recupero",show).build()).build();
  }

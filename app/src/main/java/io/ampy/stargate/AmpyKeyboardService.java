@@ -10,7 +10,7 @@ import android.provider.Settings;
 /** AmpyKeyboard 0.1.0. Optional basic IME, precise local key feedback, no text history. */
 public final class AmpyKeyboardService extends InputMethodService {
  private AmpyTheme theme;private LinearLayout keyboard;private boolean upper,symbols,numeric;private AmpyGuardClient guard;
- @Override public View onCreateInputView(){theme=new AmpyTheme(this);keyboard=new LinearLayout(this);keyboard.setOrientation(1);build();return keyboard;}
+ @Override public View onCreateInputView(){theme=new AmpyTheme(this);keyboard=new LinearLayout(this);keyboard.setOrientation(LinearLayout.VERTICAL);build();return keyboard;}
  @Override public void onStartInputView(EditorInfo info,boolean restarting){super.onStartInputView(info,restarting);
   numeric=(info.inputType&InputType.TYPE_MASK_CLASS)==InputType.TYPE_CLASS_NUMBER||(info.inputType&InputType.TYPE_MASK_CLASS)==InputType.TYPE_CLASS_PHONE;
   upper=false;symbols=numeric;if(guard!=null)guard.close();guard=new AmpyGuardClient(this,3);guard.connect(null);if(keyboard!=null)build();
@@ -26,7 +26,7 @@ public final class AmpyKeyboardService extends InputMethodService {
   row(new String[]{"⇧","123 / ABC","⌫"});row(new String[]{"🌐","Spazio","Invio"});
  }
  private String[] chars(String s){return s.codePoints().mapToObj(cp->new String(Character.toChars(cp))).toArray(String[]::new);}
- private void row(String[] labels){LinearLayout row=new LinearLayout(this);row.setOrientation(0);keyboard.addView(row);
+ private void row(String[] labels){LinearLayout row=new LinearLayout(this);row.setOrientation(LinearLayout.HORIZONTAL);keyboard.addView(row);
   int height=(int)(getResources().getDisplayMetrics().density*47);
   for(String label:labels){Button key=new Button(this);key.setAllCaps(false);key.setText(label);key.setTextColor(theme.text);key.setTextSize(label.length()>3?12:20);key.setPadding(0,0,0,0);key.setMinWidth(0);key.setMinimumWidth(0);
    AmpySurface surface=new AmpySurface(theme);key.setBackground(surface);key.setOnTouchListener((v,event)->{if(event.getActionMasked()==MotionEvent.ACTION_DOWN)surface.flash();return false;});

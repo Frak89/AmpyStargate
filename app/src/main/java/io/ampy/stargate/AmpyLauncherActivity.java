@@ -15,6 +15,8 @@ import java.util.*;
 
 /** AmpyLauncher 0.1.0: genuine HOME role and native app drawer. */
 public final class AmpyLauncherActivity extends Activity {
+ private TextView clock;private final Handler ui=new Handler(Looper.getMainLooper());
+ private final Runnable clockTick=new Runnable(){public void run(){if(clock!=null)clock.setText(java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")));ui.postDelayed(this,60000-System.currentTimeMillis()%60000);}};
  private AmpyTheme theme;private LinearLayout body;private int page,testClicks;private AmpyGuardClient guard;private String pendingImport="AmpyOrganic.svg";
  private final ArrayList<ResolveInfo> apps=new ArrayList<>();
  @Override public void onCreate(Bundle state){super.onCreate(state);theme=new AmpyTheme(this);if(state!=null){page=state.getInt("page",0);pendingImport=state.getString("import","AmpyOrganic.svg");}
@@ -22,10 +24,10 @@ public final class AmpyLauncherActivity extends Activity {
   refreshApps();render();
   if(Build.VERSION.SDK_INT>=33)getOnBackInvokedDispatcher().registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT,this::back);
  }
- @Override protected void onResume(){super.onResume();theme.load();render();
+ @Override protected void onResume(){super.onResume();theme.load();render();ui.removeCallbacks(clockTick);ui.post(clockTick);
   try{startForegroundService(new Intent(this,AmpyGuardService.class));guard=new AmpyGuardClient(this,1);guard.connect(null);}catch(RuntimeException e){notice("AmpyGuard non avviato: "+e.getMessage());}
  }
- @Override protected void onPause(){if(guard!=null){guard.close();guard=null;}super.onPause();}
+ @Override protected void onPause(){ui.removeCallbacks(clockTick);if(guard!=null){guard.close();guard=null;}super.onPause();}
  @Override public void onConfigurationChanged(Configuration c){super.onConfigurationChanged(c);render();}
  @Override protected void onSaveInstanceState(Bundle b){super.onSaveInstanceState(b);b.putInt("page",page);b.putString("import",pendingImport);}
  private void back(){if(page!=0){page=0;render();}else if(!getSystemService(RoleManager.class).isRoleHeld(RoleManager.ROLE_HOME))finish();}
@@ -36,17 +38,17 @@ public final class AmpyLauncherActivity extends Activity {
  private Button button(LinearLayout host,String title,Runnable action){Button b=new Button(this);b.setText(title);b.setAllCaps(false);b.setTextColor(theme.text);b.setPadding(dp(12),dp(8),dp(12),dp(8));AmpySurface surface=new AmpySurface(theme);b.setBackground(surface);
   LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,dp(58));p.setMargins(dp(4),dp(4),dp(4),dp(4));host.addView(b,p);b.setOnClickListener(v->{surface.flash();action.run();});return b;
  }
- private void render(){
-  LinearLayout root=new LinearLayout(this);root.setOrientation(1);root.setBackgroundColor(theme.background);root.setPadding(dp(12),dp(8),dp(12),dp(8));root.setFitsSystemWindows(true);
+ private void render(){clock=null;
+  LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setBackgroundColor(theme.background);root.setPadding(dp(12),dp(8),dp(12),dp(8));root.setFitsSystemWindows(true);
   TextView title=text("AMPYSTARGATE  /  0.1.0 α",21,theme.accent);root.addView(title);
-  LinearLayout nav=new LinearLayout(this);nav.setOrientation(0);root.addView(nav);
+  LinearLayout nav=new LinearLayout(this);nav.setOrientation(LinearLayout.HORIZONTAL);root.addView(nav);
   for(int i=0;i<3;i++){final int tab=i;Button b=button(nav,new String[]{"Home","App","Settings"}[i],()->{page=tab;render();});b.setTextColor(page==i?theme.secondary:theme.accent);LinearLayout.LayoutParams p=(LinearLayout.LayoutParams)b.getLayoutParams();p.width=0;p.weight=1;}
-  ScrollView scroll=new ScrollView(this);root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));body=new LinearLayout(this);body.setOrientation(1);scroll.addView(body);setContentView(root);
+  ScrollView scroll=new ScrollView(this);root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);scroll.addView(body);setContentView(root);
   if(Build.VERSION.SDK_INT>=35)root.setRequestedFrameRate(theme.fps);
   if(page==0)home();else if(page==1)drawer();else settings();
  }
  private void home(){
-  body.addView(text(java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")),52,theme.text));
+  clock=text(java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")),52,theme.text);body.addView(clock);
   body.addView(text("AMPYCORE / VISUAL SHELL\n"+theme.name(),12,theme.secondary));
   String reason=AmpyGuardService.recoveryReason(this);if(!reason.isEmpty())body.addView(text("MODALITÀ SICURA\n"+reason+"\nGli effetti restano spenti fino al tuo prossimo avvio esplicito.",14,theme.secondary));
   button(body,"Apri drawer",()->{page=1;render();});button(body,"Launcher predefinito",this::chooseHome);
@@ -58,7 +60,7 @@ public final class AmpyLauncherActivity extends Activity {
  }
  private void refreshApps(){apps.clear();Intent launch=new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);apps.addAll(getPackageManager().queryIntentActivities(launch,0));apps.sort(new ResolveInfo.DisplayNameComparator(getPackageManager()));}
  private void drawer(){refreshApps();int count=getResources().getConfiguration().orientation==Configuration.ORIENTATION_LANDSCAPE?5:3;LinearLayout row=null;
-  for(int i=0;i<apps.size();i++){if(i%count==0){row=new LinearLayout(this);body.addView(row);}ResolveInfo info=apps.get(i);LinearLayout cell=new LinearLayout(this);cell.setOrientation(1);cell.setGravity(Gravity.CENTER);cell.setPadding(dp(6),dp(12),dp(6),dp(8));
+  for(int i=0;i<apps.size();i++){if(i%count==0){row=new LinearLayout(this);body.addView(row);}ResolveInfo info=apps.get(i);LinearLayout cell=new LinearLayout(this);cell.setOrientation(LinearLayout.VERTICAL);cell.setGravity(Gravity.CENTER);cell.setPadding(dp(6),dp(12),dp(6),dp(8));
    AmpySurface surface=new AmpySurface(theme);cell.setBackground(surface);LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(0,dp(148),1);params.setMargins(dp(3),dp(3),dp(3),dp(3));row.addView(cell,params);
    ImageView icon=new ImageView(this);icon.setImageDrawable(info.loadIcon(getPackageManager()));cell.addView(icon,new LinearLayout.LayoutParams(dp(64),dp(64)));TextView label=text(info.loadLabel(getPackageManager()).toString(),12,theme.text);label.setMaxLines(2);label.setGravity(Gravity.CENTER);cell.addView(label);
    cell.setContentDescription(info.loadLabel(getPackageManager()));cell.setOnClickListener(v->{surface.flash();try{Intent launch=new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER).setComponent(new ComponentName(info.activityInfo.packageName,info.activityInfo.name));startActivity(launch,ActivityOptions.makeScaleUpAnimation(cell,0,0,cell.getWidth(),cell.getHeight()).toBundle());}catch(RuntimeException e){notice("App non avviabile: "+e.getMessage());}});
