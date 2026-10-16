@@ -88,8 +88,11 @@ try:
  wait_for(lambda:settings_component in call('shell','dumpsys','activity','top'),20)
  call('shell','input','keyevent','BACK');write_private('AmpyGuard.json',{'safe_mode':False,'reason':'','timestamp':0})
  write_private('AmpyThemeConfig.json',{'theme':'AmpyStargate_Fusion'})
- call('shell','am','start','-W','-f','0x30000000','-n',package+'/.AmpyLauncherActivity');time.sleep(1)
- initial_geometry=hierarchy()
+ call('shell','am','start','-W','-f','0x10008000','-n',package+'/.AmpyLauncherActivity');time.sleep(1)
+ def home_ready():
+  tree=hierarchy()
+  return tree if any('Avvia overlay' in n.get('text','') for n in tree.iter('node')) else None
+ initial_geometry=wait_for(home_ready,30)
  # Provision only this test emulator. The distributed APK never grants itself permissions.
  call('shell','settings','put','secure','enabled_accessibility_services',package+'/.AmpyOverlayService')
  call('shell','settings','put','secure','accessibility_enabled','1')
