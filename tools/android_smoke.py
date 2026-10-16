@@ -82,8 +82,10 @@ try:
  # Synthetic safe state exercises native escape buttons without custom SVG rendering.
  call('shell','input','keyevent','BACK');write_private('AmpyGuard.json',{'safe_mode':True,'reason':'CI synthetic keyboard recovery','timestamp':0})
  safe=probe();assert any(n.get('text')=='AmpyKeyboard sospesa dopo recupero' for n in safe.iter('node'))
+ settings_component=call('shell','cmd','package','resolve-activity','--brief','-a','android.settings.INPUT_METHOD_SETTINGS').strip().splitlines()[-1]
+ assert '/' in settings_component,'Missing native keyboard settings activity'
  tap('Impostazioni',safe,exact=True)
- assert 'InputMethod' in call('shell','dumpsys','activity','activities'),'Safe keyboard settings escape failed'
+ wait_for(lambda:settings_component in call('shell','dumpsys','activity','top'),20)
  call('shell','input','keyevent','BACK');write_private('AmpyGuard.json',{'safe_mode':False,'reason':'','timestamp':0})
  write_private('AmpyThemeConfig.json',{'theme':'AmpyStargate_Fusion'})
  call('shell','am','start','-W','-f','0x30000000','-n',package+'/.AmpyLauncherActivity');time.sleep(1)
