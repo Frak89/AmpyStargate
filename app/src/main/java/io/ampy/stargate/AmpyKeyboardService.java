@@ -7,20 +7,30 @@ import android.text.InputType;
 import android.content.Intent;
 import android.provider.Settings;
 
-/** AmpyKeyboard 0.1.0. Optional basic IME, precise local key feedback, no text history. */
+/** AmpyKeyboard 0.1.1. Optional basic IME, precise local key feedback, no text history. */
 public final class AmpyKeyboardService extends InputMethodService {
  private AmpyTheme theme;private LinearLayout keyboard;private boolean upper,symbols,numeric;private AmpyGuardClient guard;
- @Override public View onCreateInputView(){theme=new AmpyTheme(this);keyboard=new LinearLayout(this);keyboard.setOrientation(LinearLayout.VERTICAL);build();return keyboard;}
+ @Override public View onCreateInputView(){keyboard=new LinearLayout(this);keyboard.setOrientation(LinearLayout.VERTICAL);refreshTheme();return keyboard;}
  @Override public void onStartInputView(EditorInfo info,boolean restarting){super.onStartInputView(info,restarting);
-  numeric=(info.inputType&InputType.TYPE_MASK_CLASS)==InputType.TYPE_CLASS_NUMBER||(info.inputType&InputType.TYPE_MASK_CLASS)==InputType.TYPE_CLASS_PHONE;
-  upper=false;symbols=numeric;if(guard!=null)guard.close();guard=new AmpyGuardClient(this,3);guard.connect(null);if(keyboard!=null)build();
+  int inputClass=info==null?InputType.TYPE_CLASS_TEXT:info.inputType&InputType.TYPE_MASK_CLASS;
+  numeric=inputClass==InputType.TYPE_CLASS_NUMBER||inputClass==InputType.TYPE_CLASS_PHONE;
+  upper=false;symbols=numeric;if(guard!=null)guard.close();guard=new AmpyGuardClient(this,3);guard.connect(null);if(keyboard!=null)refreshTheme();
  }
  @Override public void onFinishInputView(boolean finishing){if(guard!=null){guard.close();guard=null;}super.onFinishInputView(finishing);}
- private void build(){keyboard.removeAllViews();keyboard.setBackgroundColor(theme.background);keyboard.setPadding(3,8,3,8);
+ private void refreshTheme(){
+  // Read the shared atomic config on every show, including a living IME process.
+  // Recovery must not parse or render a possibly faulty imported theme.
+  if(AmpyGuardService.recoveryReason(this).isEmpty()){if(theme==null)theme=new AmpyTheme(this);else theme.load();}
+  build();
+ }
+ private void build(){keyboard.removeAllViews();keyboard.setPadding(3,8,3,8);
   if(!AmpyGuardService.recoveryReason(this).isEmpty()){
-   TextView label=new TextView(this);label.setText("AmpyKeyboard sospesa dopo recupero");label.setTextColor(theme.text);keyboard.addView(label);
-   row(new String[]{"Cambia tastiera","Impostazioni"});return;
+   keyboard.setBackgroundColor(android.graphics.Color.BLACK);keyboard.setContentDescription("AmpyKeyboard recupero");
+   TextView label=new TextView(this);label.setText("AmpyKeyboard sospesa dopo recupero");label.setTextColor(android.graphics.Color.WHITE);keyboard.addView(label);
+   for(String title:new String[]{"Cambia tastiera","Impostazioni"}){Button key=new Button(this);key.setText(title);keyboard.addView(key);key.setOnClickListener(v->press(title));}return;
   }
+  if(theme==null)theme=new AmpyTheme(this);
+  keyboard.setBackgroundColor(theme.background);keyboard.setContentDescription("AmpyKeyboard · "+theme.name());
   if(symbols){row(chars("1234567890"));row(chars("@#€%&*()-+"));row(chars(".,!?/:;=\"'"));}
   else{row(chars(upper?"QWERTYUIOP":"qwertyuiop"));row(chars(upper?"ASDFGHJKL":"asdfghjkl"));row(chars(upper?"ZXCVBNM":"zxcvbnm"));}
   row(new String[]{"⇧","123 / ABC","⌫"});row(new String[]{"🌐","Spazio","Invio"});
@@ -34,6 +44,7 @@ public final class AmpyKeyboardService extends InputMethodService {
   }
  }
  private void press(String label){
+  if(!AmpyGuardService.recoveryReason(this).isEmpty()&&!label.equals("Cambia tastiera")&&!label.equals("Impostazioni")&&!label.equals("🌐")){refreshTheme();return;}
   InputConnection input=getCurrentInputConnection();
   if(label.equals("🌐")||label.equals("Cambia tastiera")){((InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).showInputMethodPicker();return;}
   if(label.equals("Impostazioni")){startActivity(new Intent(Settings.ACTION_INPUT_METHOD_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));return;}

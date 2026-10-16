@@ -24,11 +24,12 @@ def wait_for(fn,seconds=30):
 def hierarchy():
  call('shell','rm','-f','/sdcard/ampy-ui.xml');call('shell','uiautomator','dump','/sdcard/ampy-ui.xml')
  xml=call('shell','cat','/sdcard/ampy-ui.xml');(out/'hierarchy.xml').write_text(xml);return ET.fromstring(xml)
-def tap(label):
+def tap(label,geometry=None,exact=False):
  # Shell uiautomator suppresses accessibility services. Read geometry once before
  # enabling the service; never invoke UI automation while testing the overlay.
- for node in initial_geometry.iter('node'):
-  if label.casefold() in node.get('text','').casefold() and node.get('clickable')=='true':
+ for node in (initial_geometry if geometry is None else geometry).iter('node'):
+  match=node.get('text','')==label if exact else label.casefold() in node.get('text','').casefold()
+  if match and node.get('clickable')=='true':
    b=list(map(int,re.findall(r'\d+',node.get('bounds',''))))
    if len(b)==4 and b[2]>b[0] and b[3]>b[1]:call('shell','input','tap',str((b[0]+b[2])//2),str((b[1]+b[3])//2));time.sleep(1);return
  raise AssertionError('Missing clickable node '+label)
@@ -45,6 +46,40 @@ try:
   return 'Success' in result
  wait_for(install,90);call('shell','pm','grant',package,'android.permission.POST_NOTIFICATIONS')
  call('shell','am','start','-W','-n',package+'/.AmpyLauncherActivity');time.sleep(2)
+ # Complete actual key entry BEFORE enabling accessibility: shell UI dumps suppress it.
+ call('shell','ime','enable',package+'/.AmpyKeyboardService');call('shell','ime','set',package+'/.AmpyKeyboardService')
+ def probe(numeric=False):
+  call('shell','am','start','-W','-f','0x10008000','-n',package+'/.AmpyInputProbeActivity','--ez','numeric',str(numeric).lower());time.sleep(2)
+  return hierarchy()
+ def typed():
+  geometry=hierarchy()
+  for node in geometry.iter('node'):
+   if node.get('content-desc')=='AmpyInputProbe editor':return node.get('text','')
+  raise AssertionError('Missing native input probe')
+ def key(label):tap(label,hierarchy(),exact=True)
+ def write_private(name,value):
+  p=subprocess.run([adb,'-s',serial,'shell','run-as',package,'tee','files/'+name],input=json.dumps(value),capture_output=True,text=True,timeout=20)
+  assert p.returncode==0,p.stderr
+ def has_theme(geometry,name):return any(node.get('content-desc')=='AmpyKeyboard · '+name for node in geometry.iter('node'))
+ keyboard_geometry=probe()
+ assert has_theme(keyboard_geometry,'AmpyStargate_Fusion')
+ key('q');key('⇧');key('W');key('Spazio');key('123 / ABC');key('7');key('⌫');key('Invio')
+ assert typed()=='qW \n','Text/shift/space/symbol/delete/newline input failed'
+ screenshot('keyboard-text.png')
+ probe(True);key('4');key('2');assert typed()=='42','Numeric editor failed'
+ ime_pid=call('shell','pidof',package+':ampy_keyboard').strip()
+ # Hide the IME, change the shared theme from a separate process, then reopen it.
+ call('shell','input','keyevent','BACK');write_private('AmpyThemeConfig.json',{'theme':'AmpyStargate_Classic'})
+ assert has_theme(probe(),'AmpyStargate_Classic'),'Living keyboard did not reload theme'
+ assert call('shell','pidof',package+':ampy_keyboard').strip()==ime_pid,'Theme check restarted IME instead of reloading'
+ # Synthetic safe state exercises native escape buttons without custom SVG rendering.
+ call('shell','input','keyevent','BACK');write_private('AmpyGuard.json',{'safe_mode':True,'reason':'CI synthetic keyboard recovery','timestamp':0})
+ safe=probe();assert any(n.get('text')=='AmpyKeyboard sospesa dopo recupero' for n in safe.iter('node'))
+ tap('Impostazioni',safe,exact=True)
+ assert 'InputMethod' in call('shell','dumpsys','activity','activities'),'Safe keyboard settings escape failed'
+ call('shell','input','keyevent','BACK');write_private('AmpyGuard.json',{'safe_mode':False,'reason':'','timestamp':0})
+ write_private('AmpyThemeConfig.json',{'theme':'AmpyStargate_Fusion'})
+ call('shell','am','start','-W','-f','0x30000000','-n',package+'/.AmpyLauncherActivity');time.sleep(1)
  initial_geometry=hierarchy()
  # Provision only this test emulator. The distributed APK never grants itself permissions.
  call('shell','settings','put','secure','enabled_accessibility_services',package+'/.AmpyOverlayService')
@@ -56,12 +91,6 @@ try:
  assert int(call('shell','run-as',package,'cat','files/AmpyNativeClicks.txt'))==3,'Overlay blocked native touches'
  wait_for(lambda:state('AmpyOverlay.json')['reactions']>=1)
  screenshot('launcher-overlay.png')
- call('shell','ime','enable',package+'/.AmpyKeyboardService');call('shell','ime','set',package+'/.AmpyKeyboardService')
- # Open an ordinary native text entry surface in system Settings, not a fake text field.
- call('shell','am','start','-W','-a','android.settings.SETTINGS');time.sleep(1)
- # Confirm the IME is installed and selected; key-entry behavior still needs device testing.
- assert 'AmpyKeyboardService' in call('shell','settings','get','secure','default_input_method')
- call('shell','am','start','-W','-f','0x30000000','-n',package+'/.AmpyLauncherActivity');time.sleep(1)
  pid=state('AmpyOverlay.json')['pid'];call('shell','kill','-STOP',str(pid))
  wait_for(lambda:state('AmpyGuard.json').get('safe_mode'),15)
  wait_for(lambda:str(pid) not in [line.split()[0] for line in call('shell','ps','-A','-o','PID,NAME').splitlines()[1:] if line.strip()],30)
@@ -74,7 +103,7 @@ try:
  call('shell','kill','-STOP',str(main_pid))
  wait_for(lambda:state('AmpyGuard.json')['timestamp']>first_recovery,15)
  wait_for(lambda:str(main_pid) not in [line.split()[0] for line in call('shell','ps','-A','-o','PID,NAME').splitlines()[1:] if line.strip()],30)
- report={'android_api':call('shell','getprop','ro.build.version.sdk').strip(),'native_touches_pass_through':True,'accessible_click_reactions':True,'optional_ime_registered':True,'stalled_own_overlay_terminated':True,'safe_mode_recorded':True,'launcher_remains_usable':True,'second_launcher_stall_recovered':True,'physical_pixel_and_external_keyboard_timing':'not tested'}
+ report={'android_api':call('shell','getprop','ro.build.version.sdk').strip(),'native_touches_pass_through':True,'accessible_click_reactions':True,'optional_ime_registered':True,'ime_text_shift_space_symbol_delete_newline':True,'ime_numeric_entry':True,'ime_theme_reload_same_process':True,'ime_safe_settings_escape':True,'stalled_own_overlay_terminated':True,'safe_mode_recorded':True,'launcher_remains_usable':True,'second_launcher_stall_recovered':True,'physical_pixel_and_external_keyboard_timing':'not tested'}
  (out/'result.json').write_text(json.dumps(report,indent=2));print(json.dumps(report))
 finally:
  try:

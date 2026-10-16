@@ -1,4 +1,4 @@
-# AmpyStargate 0.1.0-alpha
+# AmpyStargate 0.1.1-alpha
 
 Launcher Android con grafica organica, overlay reattivo decorativo e tastiera Ampy opzionale. Target Android 17, Pixel 7 Pro; minimo Android 11. Nessun root. Non è una ROM e non sostituisce System UI o il codice delle altre app.
 
@@ -16,6 +16,7 @@ L'overlay è inizialmente spento. Leggi la descrizione, abilita il servizio nell
 - Disegna un overlay di accessibilità non toccabile e non focalizzabile: il tocco originale va alla finestra nativa. Nessuna iniezione o replica dei tocchi.
 - Segue i rettangoli IME esposti dal sistema con una transizione interpolata. Non garantisce la stessa curva temporale di Gboard, né tutti i singoli tasti di una tastiera esterna.
 - La tastiera **AmpyKeyboard**, se selezionata esplicitamente, può animare esattamente i propri tasti e si muove con la finestra IME Android. È una tastiera base sperimentale, non Gboard rivestita.
+- Dalla 0.1.1 rilegge il tema a ogni apertura senza richiedere il riavvio della tastiera. Dopo un recupero usa solo controlli nativi per cambiare IME o aprirne le impostazioni, senza caricare gli SVG personalizzati.
 - Le schermate bloccate, i dati sensibili, le finestre di sistema e i componenti senza nodi accessibili vengono esclusi o non decorati. Non si aggirano restrizioni Android.
 
 ## Recupero
@@ -35,3 +36,5 @@ Non può garantire il recupero da un blocco dell'intero Android, di System UI, d
 Apri la cartella come progetto Gradle in Android Studio con JDK 17 e SDK Android 17/API 37. È richiesta una distribuzione Gradle 8.13 (non è incluso il wrapper binario). Da terminale: `gradle :app:assembleDebug :app:lintDebug`. La workflow GitHub compila e pubblica l'APK debug; non viene dichiarata riuscita finché non è eseguita. Le firme debug locali e CI possono differire: non disinstallare versioni precedenti senza esportare i dati.
 
 L'accessibilità reale, l'ordine sopra le tastiere OEM, la latenza degli eventi, i 120 Hz e il recupero sotto carico devono essere verificati sul Pixel. Il target 120 Hz è un suggerimento al sistema, non una misura degli fps.
+
+La variante debug include un editor nativo `AmpyInputProbeActivity` senza voce nel drawer, usato esclusivamente con testo sintetico nell'emulatore CI. Non salva input, non viene incluso nelle build release e non sostituisce una verifica della tastiera sul telefono.

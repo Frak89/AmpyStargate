@@ -13,7 +13,7 @@ import android.widget.*;
 import java.io.*;
 import java.util.*;
 
-/** AmpyLauncher 0.1.0: genuine HOME role and native app drawer. */
+/** AmpyLauncher 0.1.1: genuine HOME role and native app drawer. */
 public final class AmpyLauncherActivity extends Activity {
  private TextView clock;private final Handler ui=new Handler(Looper.getMainLooper());
  private final Runnable clockTick=new Runnable(){public void run(){if(clock!=null)clock.setText(java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")));ui.postDelayed(this,60000-System.currentTimeMillis()%60000);}};
@@ -40,7 +40,7 @@ public final class AmpyLauncherActivity extends Activity {
  }
  private void render(){clock=null;
   LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setBackgroundColor(theme.background);root.setPadding(dp(12),dp(8),dp(12),dp(8));root.setFitsSystemWindows(true);
-  TextView title=text("AMPYSTARGATE  /  0.1.0 α",21,theme.accent);root.addView(title);
+  TextView title=text("AMPYSTARGATE  /  0.1.1 α",21,theme.accent);root.addView(title);
   LinearLayout nav=new LinearLayout(this);nav.setOrientation(LinearLayout.HORIZONTAL);root.addView(nav);
   for(int i=0;i<3;i++){final int tab=i;Button b=button(nav,new String[]{"Home","App","Settings"}[i],()->{page=tab;render();});b.setTextColor(page==i?theme.secondary:theme.accent);LinearLayout.LayoutParams p=(LinearLayout.LayoutParams)b.getLayoutParams();p.width=0;p.weight=1;}
   ScrollView scroll=new ScrollView(this);root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);scroll.addView(body);setContentView(root);
@@ -85,7 +85,7 @@ public final class AmpyLauncherActivity extends Activity {
  }
  private void changed(){sendBroadcast(new Intent(AmpyGuardService.CHANGED).setPackage(getPackageName()));}
  private void pick(String file,String mime){pendingImport=file;startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT).setType(mime).addCategory(Intent.CATEGORY_OPENABLE),12);}
- @Override protected void onActivityResult(int request,int result,Intent data){super.onActivityResult(request,result,data);if(request==13&&result==RESULT_OK&&data!=null&&data.getData()!=null){try(OutputStream out=getContentResolver().openOutputStream(data.getData())){String report="AmpyStargate 0.1.0-alpha\nRecovery: "+AmpyGuardService.recoveryReason(this)+"\n";File f=new File(getFilesDir(),"AmpyOverlay.json");if(f.isFile())report+=new String(java.nio.file.Files.readAllBytes(f.toPath()),java.nio.charset.StandardCharsets.UTF_8);if(out!=null)out.write(report.getBytes(java.nio.charset.StandardCharsets.UTF_8));notice("Report esportato");}catch(Exception e){notice(e.getMessage());}}if(request==12&&result==RESULT_OK&&data!=null&&data.getData()!=null){try(InputStream in=getContentResolver().openInputStream(data.getData())){if(in==null)throw new IOException("File vuoto");theme.importFile(pendingImport,in);changed();render();notice("Tema aggiornato");}catch(Exception e){notice("Importazione non riuscita: "+e.getMessage());}}}
+ @Override protected void onActivityResult(int request,int result,Intent data){super.onActivityResult(request,result,data);if(request==13&&result==RESULT_OK&&data!=null&&data.getData()!=null){try(OutputStream out=getContentResolver().openOutputStream(data.getData())){String report="AmpyStargate 0.1.1-alpha\nRecovery: "+AmpyGuardService.recoveryReason(this)+"\n";File f=new File(getFilesDir(),"AmpyOverlay.json");if(f.isFile())report+=new String(java.nio.file.Files.readAllBytes(f.toPath()),java.nio.charset.StandardCharsets.UTF_8);if(out!=null)out.write(report.getBytes(java.nio.charset.StandardCharsets.UTF_8));notice("Report esportato");}catch(Exception e){notice(e.getMessage());}}if(request==12&&result==RESULT_OK&&data!=null&&data.getData()!=null){try(InputStream in=getContentResolver().openInputStream(data.getData())){if(in==null)throw new IOException("File vuoto");theme.importFile(pendingImport,in);changed();render();notice("Tema aggiornato");}catch(Exception e){notice("Importazione non riuscita: "+e.getMessage());}}}
  private void chooseHome(){RoleManager roles=getSystemService(RoleManager.class);if(roles.isRoleAvailable(RoleManager.ROLE_HOME))startActivityForResult(roles.createRequestRoleIntent(RoleManager.ROLE_HOME),10);else startActivity(new Intent(Settings.ACTION_HOME_SETTINGS));}
  private boolean accessibilityEnabled(){String enabled=Settings.Secure.getString(getContentResolver(),Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);String name=new ComponentName(this,AmpyOverlayService.class).flattenToString();if(enabled==null)return false;for(String c:enabled.split(":"))if(ComponentName.unflattenFromString(c)!=null&&ComponentName.unflattenFromString(c).equals(ComponentName.unflattenFromString(name)))return true;return false;}
  private void accessibilityDisclosure(){new AlertDialog.Builder(this).setTitle("AmpyOverlay · autorizzazione facoltativa").setMessage(R.string.ampy_accessibility_description).setPositiveButton("Apri impostazioni",(d,w)->startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))).setNegativeButton("Annulla",null).show();}

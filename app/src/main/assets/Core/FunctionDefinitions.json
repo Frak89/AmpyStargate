@@ -48,13 +48,18 @@
     },
     {
       "name": "AmpyKeyboard.Input",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "purpose": "Optional basic IME, commit own keys directly without input history"
     },
     {
       "name": "AmpySkin.IdleSnapshot",
       "version": "1.0.0",
       "purpose": "At most 80 non-sensitive clickable rectangles from at most 240 accessibility nodes; no text or screenshots"
+    },
+    {
+      "name": "AmpyKeyboard.ReloadAndRecover",
+      "version": "0.1.1",
+      "purpose": "Reload current theme on every show; native escape controls without imported graphics in recovery"
     }
   ]
 }
