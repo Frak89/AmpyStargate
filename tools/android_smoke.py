@@ -46,6 +46,26 @@ try:
   return 'Success' in result
  wait_for(install,90);call('shell','pm','grant',package,'android.permission.POST_NOTIFICATIONS')
  call('shell','am','start','-W','-n',package+'/.AmpyLauncherActivity');time.sleep(2)
+ # Verify public settings navigation without granting restricted settings in the APK.
+ initial_home=hierarchy()
+ assert state('AmpyAccess.json')['accessibility_enabled'] is False
+ assert state('AmpyAccess.json')['overlay_active'] is False
+ tap('Permessi e configurazione',initial_home)
+ permission_ui=hierarchy()
+ assert any('Controlled by Restricted Setting' in n.get('text','') for n in permission_ui.iter('node'))
+ app_info=call('shell','cmd','package','resolve-activity','--brief','-a','android.settings.APPLICATION_DETAILS_SETTINGS','-d','package:'+package).strip().splitlines()[-1]
+ tap('1 · Apri informazioni app',permission_ui)
+ wait_for(lambda:app_info in call('shell','dumpsys','activity','top'),20)
+ call('shell','input','keyevent','BACK');time.sleep(1)
+ permission_ui=hierarchy();tap('2 · Apri Accessibilità',permission_ui)
+ access_settings=call('shell','cmd','package','resolve-activity','--brief','-a','android.settings.ACCESSIBILITY_SETTINGS').strip().splitlines()[-1]
+ wait_for(lambda:access_settings in call('shell','dumpsys','activity','top'),20)
+ call('shell','input','keyevent','BACK');time.sleep(1)
+ tap('Home',hierarchy(),exact=True)
+ # Inspect the actual selected theme menu, then dismiss without changing it.
+ tap('Settings',hierarchy(),exact=True);tap('Tema SVG',hierarchy())
+ choices=hierarchy();assert any(n.get('text')=='✓ AmpyStargate_Fusion' for n in choices.iter('node'))
+ screenshot('gold-selected-theme.png');call('shell','input','keyevent','BACK');tap('Home',hierarchy(),exact=True)
  # Complete actual key entry BEFORE enabling accessibility: shell UI dumps suppress it.
  call('shell','ime','enable',package+'/.AmpyKeyboardService');call('shell','ime','set',package+'/.AmpyKeyboardService')
  call('shell','settings','put','secure','show_ime_with_hard_keyboard','1')
@@ -98,6 +118,7 @@ try:
  call('shell','settings','put','secure','accessibility_enabled','1')
  wait_for(lambda:state('AmpyOverlay.json')['active'] is False,30)
  tap('Avvia overlay');wait_for(lambda:state('AmpyOverlay.json')['active'])
+ wait_for(lambda:state('AmpyAccess.json')['overlay_active'] and state('AmpyAccess.json')['service_connected'])
  for _ in range(3):
   tap('Test tocco nativo');assert state('AmpyOverlay.json')['active'],'Test instrumentation disconnected overlay'
  assert int(call('shell','run-as',package,'cat','files/AmpyNativeClicks.txt'))==3,'Overlay blocked native touches'
@@ -115,12 +136,12 @@ try:
  call('shell','kill','-STOP',str(main_pid))
  wait_for(lambda:state('AmpyGuard.json')['timestamp']>first_recovery,15)
  wait_for(lambda:str(main_pid) not in [line.split()[0] for line in call('shell','ps','-A','-o','PID,NAME').splitlines()[1:] if line.strip()],30)
- report={'android_api':call('shell','getprop','ro.build.version.sdk').strip(),'native_touches_pass_through':True,'accessible_click_reactions':True,'optional_ime_registered':True,'ime_text_shift_space_symbol_delete_newline':True,'ime_numeric_entry':True,'ime_theme_reload_same_process':True,'ime_safe_settings_escape':True,'stalled_own_overlay_terminated':True,'safe_mode_recorded':True,'launcher_remains_usable':True,'second_launcher_stall_recovered':True,'physical_pixel_and_external_keyboard_timing':'not tested'}
+ report={'android_api':call('shell','getprop','ro.build.version.sdk').strip(),'native_touches_pass_through':True,'accessible_click_reactions':True,'optional_ime_registered':True,'permission_guide_links':True,'overlay_acknowledged_in_launcher':True,'selected_theme_marker':True,'ime_text_shift_space_symbol_delete_newline':True,'ime_numeric_entry':True,'ime_theme_reload_same_process':True,'ime_safe_settings_escape':True,'stalled_own_overlay_terminated':True,'safe_mode_recorded':True,'launcher_remains_usable':True,'second_launcher_stall_recovered':True,'physical_pixel_and_external_keyboard_timing':'not tested'}
  (out/'result.json').write_text(json.dumps(report,indent=2));print(json.dumps(report))
 finally:
  try:
   (out/'logcat.txt').write_text(call('logcat','-d'));screenshot('last-screen.png')
-  for name in ('AmpyGuard.json','AmpyOverlay.json'):
+  for name in ('AmpyGuard.json','AmpyOverlay.json','AmpyAccess.json'):
    try:(out/name).write_text(call('shell','run-as',package,'cat','files/'+name))
    except RuntimeError:pass
  except Exception:pass

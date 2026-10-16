@@ -12,7 +12,7 @@ import java.util.regex.*;
 /** AmpyTheme 1.0.0. Local JSON palettes and bounded closed cubic SVG silhouettes. */
 public final class AmpyTheme {
  public static final String[] NAMES={"AmpyStargate_Classic","AmpyStargate_Cyberpunk","AmpyStargate_Futuristic","AmpyStargate_Fusion"};
- public int background=0xff06121e,surface=0xff0b2936,accent=0xff35f2df,secondary=0xffffc45d,text=0xffe0fbff;
+ public int background=0xff06121e,surface=0xff0b2936,accent=0xff35f2df,secondary=0xffffc45d,text=0xffe0fbff,selection=0xffffd166;
  public String effect="morph";public int fps=120;public boolean ambient=false,idleSkin=true;
  private static final String FACTORY_SVG="M 80 5 C 230 0 730 0 920 5 C 995 8 999 45 990 120 C 999 220 960 235 900 235 C 700 240 230 240 80 235 C 0 230 0 190 10 120 C 0 40 5 10 80 5 Z";
  private String svg=FACTORY_SVG;
@@ -33,10 +33,10 @@ public final class AmpyTheme {
  public void load(){try{
   JSONObject cfg=state(context);String chosen=cfg.optString("theme",NAMES[3]);selected=Arrays.asList(NAMES).contains(chosen)?chosen:NAMES[3];factory=cfg.optBoolean("factory",false);
   effect=cfg.optString("effect","morph");fps=cfg.optInt("fps",120)==60?60:120;ambient=cfg.optBoolean("ambient",false);idleSkin=cfg.optBoolean("idle_skin",true);
-  if(factory){svg=FACTORY_SVG;selected=NAMES[0];background=0xff06121e;surface=0xff0b2936;accent=0xff35f2df;secondary=0xffffc45d;text=0xffe0fbff;base=parse(svg);return;}
+  if(factory){svg=FACTORY_SVG;selected=NAMES[0];background=0xff06121e;surface=0xff0b2936;accent=0xff35f2df;secondary=0xffffc45d;text=0xffe0fbff;selection=0xffffd166;base=parse(svg);return;}
 
   File file=new File(folder(),"palette.json");if(file.length()>8192)throw new IOException("Palette exceeds 8 KiB");
-  JSONObject o=new JSONObject(new String(Files.readAllBytes(file.toPath()),StandardCharsets.UTF_8));background=Color.parseColor(o.getString("background"));surface=Color.parseColor(o.getString("surface"));accent=Color.parseColor(o.getString("accent"));secondary=Color.parseColor(o.getString("secondary"));text=Color.parseColor(o.getString("text"));
+  JSONObject o=new JSONObject(new String(Files.readAllBytes(file.toPath()),StandardCharsets.UTF_8));background=Color.parseColor(o.getString("background"));surface=Color.parseColor(o.getString("surface"));accent=Color.parseColor(o.getString("accent"));secondary=Color.parseColor(o.getString("secondary"));text=Color.parseColor(o.getString("text"));selection=Color.parseColor(o.optString("selection","#FFD166"));
   svg=readPath(new File(folder(),"AmpyOrganic.svg"));
  }catch(Exception e){android.util.Log.w("AmpyTheme","Invalid theme; retaining defaults: "+e.getMessage());}base=parse(svg);}
  public void setIdleSkin(boolean on){try{JSONObject cfg=state(context);cfg.put("idle_skin",on);save(context,cfg);load();}catch(Exception e){android.util.Log.e("AmpyTheme",e.toString());}}
@@ -45,7 +45,7 @@ public final class AmpyTheme {
   if(!file.equals("palette.json")&&!file.equals("AmpyOrganic.svg"))throw new IOException("Unsupported theme file");
   ByteArrayOutputStream bytes=new ByteArrayOutputStream();byte[] buffer=new byte[4096];int count;while((count=in.read(buffer))!=-1){if(bytes.size()+count>65536)throw new IOException("File exceeds 64 KiB");bytes.write(buffer,0,count);}byte[] data=bytes.toByteArray();if(file.equals("palette.json")&&data.length>8192)throw new IOException("Palette exceeds 8 KiB");
   File temp=new File(folder(),file+".tmp");Files.write(temp.toPath(),data);
-  try{if(file.endsWith("svg")){String path=readPath(temp);parse(path);}else{JSONObject o=new JSONObject(new String(data,StandardCharsets.UTF_8));for(String k:new String[]{"background","surface","accent","secondary","text"})Color.parseColor(o.getString(k));}}
+  try{if(file.endsWith("svg")){String path=readPath(temp);parse(path);}else{JSONObject o=new JSONObject(new String(data,StandardCharsets.UTF_8));for(String k:new String[]{"background","surface","accent","secondary","text"})Color.parseColor(o.getString(k));if(o.has("selection"))Color.parseColor(o.getString("selection"));}}
   catch(Exception e){temp.delete();throw new IOException("Invalid theme: "+e.getMessage(),e);}
   Files.move(temp.toPath(),new File(folder(),file).toPath(),java.nio.file.StandardCopyOption.REPLACE_EXISTING);try{JSONObject cfg=state(context);cfg.put("factory",false);save(context,cfg);}catch(org.json.JSONException e){throw new IOException(e);}load();
  }

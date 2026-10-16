@@ -60,6 +60,21 @@
       "name": "AmpyKeyboard.ReloadAndRecover",
       "version": "0.1.1",
       "purpose": "Reload current theme on every show; native escape controls without imported graphics in recovery"
+    },
+    {
+      "name": "AmpyPermissions.Setup",
+      "version": "1.0.0",
+      "purpose": "Manual restricted-settings guide and ordinary Android app/accessibility settings, no permission bypass"
+    },
+    {
+      "name": "AmpyPermissions.Status",
+      "version": "1.0.0",
+      "purpose": "Enabled permission, responding service and active overlay reported separately with command acknowledgement"
+    },
+    {
+      "name": "AmpySurface.Selection",
+      "version": "1.1.0",
+      "purpose": "Editable SVG contour with layered gold selection outline and optional selection palette color"
     }
   ]
 }
