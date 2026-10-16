@@ -8,12 +8,14 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.view.WindowInsets;
 
 /** Debug-only ordinary native editor for synthetic CI input; no storage or logging. */
 public final class AmpyInputProbeActivity extends Activity {
  private EditText input;
  @Override public void onCreate(Bundle state){super.onCreate(state);
   LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);
+  root.setOnApplyWindowInsetsListener((v,insets)->{android.graphics.Insets bars=insets.getInsets(WindowInsets.Type.systemBars());root.setPadding(bars.left,bars.top,bars.right,bars.bottom);return insets;});
   TextView label=new TextView(this);label.setText("AmpyInputProbe · solo test debug");root.addView(label);
   input=new EditText(this);input.setContentDescription("AmpyInputProbe editor");
   boolean numeric=getIntent().getBooleanExtra("numeric",false),done=getIntent().getBooleanExtra("done",false);
